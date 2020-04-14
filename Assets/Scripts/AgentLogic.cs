@@ -49,10 +49,16 @@ public struct AgentData
     public Vector2 randomDirectionValue;
     public float boxWeight;
     public float distanceFactor;
+    public float x4boxWeight;
+    public float x4distanceFactor;
+    public float x16boxWeight;
+    public float x16distanceFactor;
     public float boatWeight;
     public float boatDistanceFactor;
+    public float wallWeight;
+    public float wallDistanceFactor;
 
-    public AgentData(int steps, int rayRadius, float sight, float movingSpeed, Vector2 randomDirectionValue, float boxWeight, float distanceFactor, float boatWeight, float boatDistanceFactor)
+    public AgentData(int steps, int rayRadius, float sight, float movingSpeed, Vector2 randomDirectionValue, float boxWeight, float distanceFactor, float x4boxWeight, float x4distanceFactor, float x16boxWeight, float x16distanceFactor, float boatWeight, float boatDistanceFactor, float wallWeight, float wallDistanceFactor)
     {
         this.steps = steps;
         this.rayRadius = rayRadius;
@@ -61,8 +67,14 @@ public struct AgentData
         this.randomDirectionValue = randomDirectionValue;
         this.boxWeight = boxWeight;
         this.distanceFactor = distanceFactor;
+        this.x4boxWeight = x4boxWeight;
+        this.x4distanceFactor = x4distanceFactor;
+        this.x16boxWeight = x16boxWeight;
+        this.x16distanceFactor = x16distanceFactor;
         this.boatWeight = boatWeight;
         this.boatDistanceFactor = boatDistanceFactor;
+        this.wallWeight = boatWeight;
+        this.wallDistanceFactor = boatDistanceFactor;
     }
 }
 
@@ -79,7 +91,7 @@ public class AgentLogic : MonoBehaviour, IComparable
 
     [SerializeField]
     protected float points;
-
+    [SerializeField]
     private bool _isAwake;
 
     [Header("Genes")]
@@ -101,9 +113,22 @@ public class AgentLogic : MonoBehaviour, IComparable
     [SerializeField]
     private float distanceFactor;
     [SerializeField]
+    private float x4boxWeight;
+    [SerializeField]
+    private float x4distanceFactor;
+    [SerializeField]
+    private float x16boxWeight;
+    [SerializeField]
+    private float x16distanceFactor;
+    [SerializeField]
     private float boatWeight;
     [SerializeField]
     private float boatDistanceFactor;
+    [SerializeField]
+    private float wallWeight;
+    [SerializeField]
+    private float wallDistanceFactor;
+
 
     [Space(10)]
     [Header("Debug & Help")]
@@ -154,8 +179,14 @@ public class AgentLogic : MonoBehaviour, IComparable
         randomDirectionValue = parent.randomDirectionValue;
         boxWeight = parent.boxWeight;
         distanceFactor = parent.distanceFactor;
+        x4boxWeight = parent.x4boxWeight;
+        x4distanceFactor = parent.x4distanceFactor;
+        x16boxWeight = parent.x16boxWeight;
+        x16distanceFactor = parent.x16distanceFactor;
         boatWeight = parent.boatWeight;
         boatDistanceFactor = parent.boatDistanceFactor;
+        wallWeight = parent.wallWeight;
+        wallDistanceFactor = parent.wallDistanceFactor;
     }
 
     /// <summary>
@@ -216,11 +247,35 @@ public class AgentLogic : MonoBehaviour, IComparable
         }
         if (Random.Range(0.0f, 100.0f) <= mutationChance)
         {
+            x4boxWeight += Random.Range(-mutationFactor, +mutationFactor);
+        }
+        if (Random.Range(0.0f, 100.0f) <= mutationChance)
+        {
+            x4distanceFactor += Random.Range(-mutationFactor, +mutationFactor);
+        }
+        if (Random.Range(0.0f, 100.0f) <= mutationChance)
+        {
+            x16boxWeight += Random.Range(-mutationFactor, +mutationFactor);
+        }
+        if (Random.Range(0.0f, 100.0f) <= mutationChance)
+        {
+            x16distanceFactor += Random.Range(-mutationFactor, +mutationFactor);
+        }
+        if (Random.Range(0.0f, 100.0f) <= mutationChance)
+        {
             boatWeight += Random.Range(-mutationFactor, +mutationFactor);
         }
         if (Random.Range(0.0f, 100.0f) <= mutationChance)
         {
             boatDistanceFactor += Random.Range(-mutationFactor, +mutationFactor);
+        }
+        if (Random.Range(0.0f, 100.0f) <= mutationChance)
+        {
+            wallWeight += Random.Range(-mutationFactor, +mutationFactor);
+        }
+        if (Random.Range(0.0f, 100.0f) <= mutationChance)
+        {
+            wallDistanceFactor += Random.Range(-mutationFactor, +mutationFactor);
         }
     }
 
@@ -317,8 +372,17 @@ public class AgentLogic : MonoBehaviour, IComparable
                 case "Box":
                     utility = distanceIndex * distanceFactor + boxWeight;
                     break;
+                case "x4Box":
+                    utility = distanceIndex * x4distanceFactor + x4boxWeight;
+                    break;
+                case "x16Box":
+                    utility = distanceIndex * x16distanceFactor + x16boxWeight;
+                    break;
                 case "Boat":
                     utility = distanceIndex * boatDistanceFactor + boatWeight;
+                    break;
+                case "Wall":
+                    utility = distanceIndex * wallDistanceFactor + wallWeight;
                     break;
             }
         }
@@ -378,6 +442,6 @@ public class AgentLogic : MonoBehaviour, IComparable
     /// <returns></returns>
     public AgentData GetData()
     {
-        return new AgentData(steps, rayRadius, sight, movingSpeed, randomDirectionValue, boxWeight, distanceFactor, boatWeight, boatDistanceFactor);
+        return new AgentData(steps, rayRadius, sight, movingSpeed, randomDirectionValue, boxWeight, distanceFactor, x4boxWeight, x4distanceFactor, x16boxWeight, x16distanceFactor, boatWeight, boatDistanceFactor, wallWeight, wallDistanceFactor);
     }
 }

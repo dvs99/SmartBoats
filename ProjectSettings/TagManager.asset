@@ -6,7 +6,8 @@ TagManager:
   tags:
   - Boat
   - Box
-  - Enemy
+  - x4Box
+  - x16Box
   layers:
   - Default
   - TransparentFX

@@ -11,9 +11,19 @@ public class BoatLogic : AgentLogic
     
     private void OnTriggerEnter(Collider other)
     {
-        if(other.gameObject.tag.Equals("Box"))
+        if (other.gameObject.tag.Equals("Box"))
         {
             points += _boxPoints;
+            Destroy(other.gameObject);
+        }
+        else if (other.gameObject.tag.Equals("x4Box"))
+        {
+            points += _boxPoints*4;
+            Destroy(other.gameObject);
+        }
+        else if (other.gameObject.tag.Equals("x16Box"))
+        {
+            points += _boxPoints*16;
             Destroy(other.gameObject);
         }
     }
