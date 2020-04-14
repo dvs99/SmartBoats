@@ -51,10 +51,8 @@ public struct AgentData
     public float distanceFactor;
     public float boatWeight;
     public float boatDistanceFactor;
-    public float enemyWeight;
-    public float enemyDistanceFactor;
 
-    public AgentData(int steps, int rayRadius, float sight, float movingSpeed, Vector2 randomDirectionValue, float boxWeight, float distanceFactor, float boatWeight, float boatDistanceFactor, float enemyWeight, float enemyDistanceFactor)
+    public AgentData(int steps, int rayRadius, float sight, float movingSpeed, Vector2 randomDirectionValue, float boxWeight, float distanceFactor, float boatWeight, float boatDistanceFactor)
     {
         this.steps = steps;
         this.rayRadius = rayRadius;
@@ -65,8 +63,6 @@ public struct AgentData
         this.distanceFactor = distanceFactor;
         this.boatWeight = boatWeight;
         this.boatDistanceFactor = boatDistanceFactor;
-        this.enemyWeight = enemyWeight;
-        this.enemyDistanceFactor = enemyDistanceFactor;
     }
 }
 
@@ -80,7 +76,7 @@ public class AgentLogic : MonoBehaviour, IComparable
 {
     private Vector3 _movingDirection;
     private Rigidbody _rigidbody;
-    
+
     [SerializeField]
     protected float points;
 
@@ -108,20 +104,16 @@ public class AgentLogic : MonoBehaviour, IComparable
     private float boatWeight;
     [SerializeField]
     private float boatDistanceFactor;
-    [SerializeField]
-    private float enemyWeight;
-    [SerializeField]
-    private float enemyDistanceFactor;
 
     [Space(10)]
-    [Header("Debug & Help")] 
+    [Header("Debug & Help")]
     [SerializeField]
     private Color visionColor;
     [SerializeField]
     private Color foundColor;
     [SerializeField]
     private Color directionColor;
-    [SerializeField, Tooltip("Shows visualization rays.")] 
+    [SerializeField, Tooltip("Shows visualization rays.")]
     private bool debug;
 
     #region Static Variables
@@ -133,7 +125,7 @@ public class AgentLogic : MonoBehaviour, IComparable
     private static float _sightInfluenceInSpeed = 0.0625f;
     private static float _maxUtilityChoiceChance = 0.85f;
     #endregion
-    
+
     private void Awake()
     {
         Initiate();
@@ -148,7 +140,7 @@ public class AgentLogic : MonoBehaviour, IComparable
         steps = 360 / rayRadius;
         _rigidbody = GetComponent<Rigidbody>();
     }
-    
+
     /// <summary>
     /// Copies the genes / weights from the parent.
     /// </summary>
@@ -164,8 +156,6 @@ public class AgentLogic : MonoBehaviour, IComparable
         distanceFactor = parent.distanceFactor;
         boatWeight = parent.boatWeight;
         boatDistanceFactor = parent.boatDistanceFactor;
-        enemyWeight = parent.enemyWeight;
-        enemyDistanceFactor = parent.enemyDistanceFactor;
     }
 
     /// <summary>
@@ -178,13 +168,13 @@ public class AgentLogic : MonoBehaviour, IComparable
     {
         if (Random.Range(0.0f, 100.0f) <= mutationChance)
         {
-            steps += (int) Random.Range(-mutationFactor, +mutationFactor);
-            steps = (int) Mathf.Max(steps, _minimalSteps);
+            steps += (int)Random.Range(-mutationFactor, +mutationFactor);
+            steps = (int)Mathf.Max(steps, _minimalSteps);
         }
         if (Random.Range(0.0f, 100.0f) <= mutationChance)
         {
-            rayRadius += (int) Random.Range(-mutationFactor, +mutationFactor);
-            rayRadius = (int) Mathf.Max(rayRadius, _minimalRayRadius);
+            rayRadius += (int)Random.Range(-mutationFactor, +mutationFactor);
+            rayRadius = (int)Mathf.Max(rayRadius, _minimalRayRadius);
         }
         if (Random.Range(0.0f, 100.0f) <= mutationChance)
         {
@@ -194,7 +184,7 @@ public class AgentLogic : MonoBehaviour, IComparable
             if (sightIncrease > 0.0f)
             {
                 movingSpeed -= sightIncrease * _sightInfluenceInSpeed;
-                movingSpeed = Mathf.Max(movingSpeed, _minimalMovingSpeed);    
+                movingSpeed = Mathf.Max(movingSpeed, _minimalMovingSpeed);
             }
         }
         if (Random.Range(0.0f, 100.0f) <= mutationChance)
@@ -205,7 +195,7 @@ public class AgentLogic : MonoBehaviour, IComparable
             if (movingSpeedIncrease > 0.0f)
             {
                 sight -= movingSpeedIncrease * _speedInfluenceInSight;
-                sight = Mathf.Max(sight, _minimalSight);    
+                sight = Mathf.Max(sight, _minimalSight);
             }
         }
         if (Random.Range(0.0f, 100.0f) <= mutationChance)
@@ -230,15 +220,7 @@ public class AgentLogic : MonoBehaviour, IComparable
         }
         if (Random.Range(0.0f, 100.0f) <= mutationChance)
         {
-            boatDistanceFactor +=  Random.Range(-mutationFactor, +mutationFactor);
-        }
-        if (Random.Range(0.0f, 100.0f) <= mutationChance)
-        {
-            enemyWeight += Random.Range(-mutationFactor, +mutationFactor);
-        }
-        if (Random.Range(0.0f, 100.0f) <= mutationChance)
-        {
-            enemyDistanceFactor += Random.Range(-mutationFactor, +mutationFactor);
+            boatDistanceFactor += Random.Range(-mutationFactor, +mutationFactor);
         }
     }
 
@@ -246,7 +228,7 @@ public class AgentLogic : MonoBehaviour, IComparable
     {
         if (_isAwake)
         {
-            Act();    
+            Act();
         }
     }
 
@@ -267,14 +249,14 @@ public class AgentLogic : MonoBehaviour, IComparable
 
         //Initiate the rayDirection on the opposite side of the spectrum.
         Vector3 rayDirection = Quaternion.Euler(0, -1.0f * steps * (rayRadius / 2.0f), 0) * forward;
-        
+
         //List of AgentDirection (direction + utility) for all the directions.
         List<AgentDirection> directions = new List<AgentDirection>();
         for (int i = 0; i <= rayRadius; i++)
         {
             //Add the new calculatedAgentDirection looking at the rayDirection.
             directions.Add(CalculateAgentDirection(selfPosition, rayDirection));
-            
+
             //Rotate the rayDirection by _steps every iteration through the entire rayRadius.
             rayDirection = Quaternion.Euler(0, steps, 0) * rayDirection;
         }
@@ -284,13 +266,13 @@ public class AgentLogic : MonoBehaviour, IComparable
         directions.Sort();
         //There is a (100 - _maxUtilityChoiceChance) chance of using the second best option instead of the highest one. Should help into ambiguous situation.
         AgentDirection highestAgentDirection = directions[Random.Range(0.0f, 100.0f) <= _maxUtilityChoiceChance ? 0 : 1];
-        
+
         //Rotate towards to direction. The factor of 0.1 helps to create a "rotation" animation instead of automatically rotates towards the target. 
         transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(highestAgentDirection.Direction), 0.1f);
-        
+
         //Sets the velocity using the chosen direction
         _rigidbody.velocity = highestAgentDirection.Direction * movingSpeed;
-        
+
         if (debug)
         {
             Debug.DrawRay(selfPosition, highestAgentDirection.Direction * (sight * 1.5f), directionColor);
@@ -309,7 +291,7 @@ public class AgentLogic : MonoBehaviour, IComparable
 
         //Create an AgentDirection struct with a random utility value [utility]. Ignores y component.
         AgentDirection direction = new AgentDirection(new Vector3(rayDirection.x, 0.0f, rayDirection.z), utility);
-        
+
         //Raycast into the rayDirection to check if something can be seen in that direction.
         //The sightFactor is a variable that increases / decreases the size of the ray.
         //For now, the sightFactor is only used to control the long sight in front of the agent.
@@ -319,11 +301,11 @@ public class AgentLogic : MonoBehaviour, IComparable
             {
                 Debug.DrawLine(selfPosition, raycastHit.point, foundColor);
             }
-            
+
             //Calculate the normalized distance from the agent to the intersected object.
             //Closer objects will have distancedNormalized close to 0, and further objects will have it close to 1.
             float distanceNormalized = (raycastHit.distance / (sight * sightFactor));
-            
+
             //Inverts the distanceNormalized. Closer objects will tend to 1, while further objects will tend to 0.
             //Thus, closer objects will have a higher value.
             float distanceIndex = 1.0f - distanceNormalized;
@@ -338,12 +320,9 @@ public class AgentLogic : MonoBehaviour, IComparable
                 case "Boat":
                     utility = distanceIndex * boatDistanceFactor + boatWeight;
                     break;
-                case "Enemy":
-                    utility = distanceIndex * enemyDistanceFactor + enemyWeight;
-                    break;
             }
         }
-        
+
         direction.utility = utility;
         return direction;
     }
@@ -371,21 +350,22 @@ public class AgentLogic : MonoBehaviour, IComparable
     {
         return points;
     }
-    
+
     /// <summary>
     /// Compares the points of two agents. When used on Sort function will make the highest points to be on top.
     /// </summary>
     /// <param name="obj"></param>
     /// <returns></returns>
     /// <exception cref="ArgumentException"></exception>
-    public int CompareTo(object obj) {
+    public int CompareTo(object obj)
+    {
         if (obj == null) return 1;
-        
+
         AgentLogic otherAgent = obj as AgentLogic;
         if (otherAgent != null)
         {
             return otherAgent.GetPoints().CompareTo(GetPoints());
-        } 
+        }
         else
         {
             throw new ArgumentException("Object is not an AgentLogic");
@@ -398,6 +378,6 @@ public class AgentLogic : MonoBehaviour, IComparable
     /// <returns></returns>
     public AgentData GetData()
     {
-        return new AgentData(steps, rayRadius, sight, movingSpeed, randomDirectionValue, boxWeight, distanceFactor, boatWeight, boatDistanceFactor, enemyWeight,  enemyDistanceFactor);
+        return new AgentData(steps, rayRadius, sight, movingSpeed, randomDirectionValue, boxWeight, distanceFactor, boatWeight, boatDistanceFactor);
     }
 }

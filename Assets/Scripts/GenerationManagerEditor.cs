@@ -15,9 +15,9 @@ public class GenerationManagerEditor : Editor
         {
             (target as GenerationManager)?.GenerateBoxes();
         }
-        if (GUILayout.Button("Generate Boats/Pirates"))
+        if (GUILayout.Button("Generate Boats"))
         {
-            (target as GenerationManager)?.GenerateObjects();
+            (target as GenerationManager)?.GenerateBoats();
         }
         if (GUILayout.Button("Start Simulation"))
         {
