@@ -31,5 +31,9 @@ public class GenerationManagerEditor : Editor
         {
             (target as GenerationManager)?.StopSimulation();
         }
+        if (GUILayout.Button("Start Simulation From Stored Boats"))
+        {
+            (target as GenerationManager)?.StartSimulationStored();
+        }
     }
 }

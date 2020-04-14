@@ -28,6 +28,8 @@ public class GenerateObjectsInArea : MonoBehaviour
         _bounds = GetComponent<Renderer>().bounds;
     }
 
+    public uint GetCount() { return count; }
+
     /// <summary>
     /// Remove all children objects. Uses DestroyImmediate.
     /// </summary>
@@ -41,7 +43,8 @@ public class GenerateObjectsInArea : MonoBehaviour
     
     /// <summary>
     /// Destroy all objects in the area (that belongs to this script) and creates them again.
-    /// The list of newly created objects is returned.
+    /// The list of newly created objects is returned. If provided with an array of the right
+    /// lenght, overrides the current objects an instance of each object in the array.
     /// </summary>
     /// <returns></returns>
     public List<GameObject> RegenerateObjects()
@@ -61,7 +64,32 @@ public class GenerateObjectsInArea : MonoBehaviour
 
         return newObjects;
     }
-    
+
+    public List<GameObject> RegenerateObjects(GameObject[] gameObjects)
+    {
+        if (gameObjects.Length == count)
+        {
+
+            for (int i = transform.childCount - 1; i >= 0; --i)
+            {
+                DestroyImmediate(transform.GetChild(i).gameObject);
+            }
+
+            List<GameObject> newObjects = new List<GameObject>();
+            for (uint i = 0; i < count; i++)
+            {
+                GameObject created = Instantiate(gameObjects[i], GetRandomPositionInWorldBounds(), GetRandomRotation());
+                created.transform.parent = transform;
+                //prevents objects from being scaled when adding them to the generator
+                created.transform.localScale = new Vector3(created.transform.localScale.x * transform.localScale.x, created.transform.localScale.y * transform.localScale.y, created.transform.localScale.z * transform.localScale.z);
+                newObjects.Add(created);
+            }
+
+            return newObjects;
+        }
+        return null;
+    }
+
     /// <summary>
     /// Gets a random position delimited by the bounds, using its extends and center.
     /// </summary>

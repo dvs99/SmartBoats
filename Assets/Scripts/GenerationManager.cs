@@ -36,10 +36,14 @@ public class GenerationManager : MonoBehaviour
     private int generationCount;
 
     [Space(10)] 
-    [Header("Prefab Saving")]
+    [Header("Prefab Saving and storage")]
+    [SerializeField]
+    private bool saveCompleteGenerations;
     [SerializeField]
     private string savePrefabsAt;
-    
+    [SerializeField, Tooltip("Add stored prefabs here to use them.")]
+    private GameObject[] storedboats;
+
     /// <summary>
     /// Those variables are used mostly for debugging in the inspector.
     /// </summary>
@@ -54,6 +58,10 @@ public class GenerationManager : MonoBehaviour
     
     private void Start()
     {
+        //if savePrefabsAt endes in / we need to remove it so AssetDatabase.CreateFolder works
+        if (savePrefabsAt[savePrefabsAt.Length - 1] == '/')
+            savePrefabsAt = savePrefabsAt.Substring(0, savePrefabsAt.Length - 1);
+
         if (runOnStart)
         {
             StartSimulation();
@@ -67,8 +75,8 @@ public class GenerationManager : MonoBehaviour
             //Creates a new generation.
             if (simulationCount >= simulationTimer)
             {
-                ++generationCount;
                 MakeNewGeneration();
+                ++generationCount;
                 simulationCount = -Time.deltaTime;
             } 
             simulationCount += Time.deltaTime;
@@ -129,6 +137,7 @@ public class GenerationManager : MonoBehaviour
         //Fetch parents
         _activeBoats.RemoveAll(item => item == null);
         _activeBoats.Sort();
+
         if (_activeBoats.Count == 0)
         {
             GenerateBoats(_boatParents);
@@ -139,14 +148,29 @@ public class GenerationManager : MonoBehaviour
             _boatParents[i] = _activeBoats[i];
         }
 
-        BoatLogic lastBoatWinner = _activeBoats[0];
-        lastBoatWinner.name += "Gen-" + generationCount; 
-        lastBoatWinnerData = lastBoatWinner.GetData();
-        PrefabUtility.SaveAsPrefabAsset(lastBoatWinner.gameObject, savePrefabsAt + lastBoatWinner.name + ".prefab");
-        
         //Winner:
+        BoatLogic lastBoatWinner = _activeBoats[0];
         Debug.Log("Last winner boat had: " + lastBoatWinner.GetPoints() + " points!");
-        
+
+        //we save the generation sorted by how well each boat performed or we save just the best boat
+        if (saveCompleteGenerations)
+        {
+            string guid = AssetDatabase.CreateFolder(savePrefabsAt, "Complete Gen-" + generationCount);
+            string newFolderPath = AssetDatabase.GUIDToAssetPath(guid);
+            for (int i = 0; i < _activeBoats.Count; i++)
+            {
+                print(i);
+                _activeBoats[i].name = "(" + (i + 1) + ")" + _activeBoats[i].name + "Gen-" + generationCount;
+                PrefabUtility.SaveAsPrefabAsset(_activeBoats[i].gameObject, newFolderPath + "/" + _activeBoats[i].name + ".prefab");
+            }
+        }
+        else
+        {
+            lastBoatWinner.name += "Gen-" + generationCount;
+            lastBoatWinnerData = lastBoatWinner.GetData();
+            PrefabUtility.SaveAsPrefabAsset(lastBoatWinner.gameObject, savePrefabsAt +"/" + lastBoatWinner.name + ".prefab");
+        }
+   
         GenerateBoats(_boatParents);
     }
 
@@ -156,6 +180,9 @@ public class GenerationManager : MonoBehaviour
      /// </summary>
     public void StartSimulation()
     {
+        simulationCount = 0;
+        generationCount = 0;
+        _boatParents = null;
         GenerateBoxes();
         GenerateBoats(_boatParents);
         _runningSimulation = true;
@@ -167,18 +194,48 @@ public class GenerationManager : MonoBehaviour
      /// </summary>
      public void ContinueSimulation()
      {
-         MakeNewGeneration();
+        simulationCount = 0;
+        MakeNewGeneration();
          _runningSimulation = true;
      }
-     
-     /// <summary>
-     /// Stops the count for the simulation. It also removes null (Destroyed) boats from the _activeBoats list and sets
-     /// all boats to Sleep.
-     /// </summary>
+
+    /// <summary>
+    /// Stops the count for the simulation. It also removes null (Destroyed) boats from the _activeBoats list and sets
+    /// all boats to Sleep.
+    /// </summary>
     public void StopSimulation()
     {
         _runningSimulation = false;
         _activeBoats.RemoveAll(item => item == null);
         _activeBoats.ForEach(boat => boat.Sleep());
+    }
+
+    /// <summary>
+    /// Overrides current generation with stored boats and starts the simulation from there.
+    /// Requires the array of stored boat to be the same size as the one we were using and the simulation to be stopped before
+    /// </summary>
+    public void StartSimulationStored()
+    {
+        if (boatGenerator.GetCount()==storedboats.Length)
+        {
+            GenerateBoxes();
+            simulationCount = 0;
+            generationCount = 0;
+
+            _boatParents = null;
+
+            _activeBoats.Clear();
+
+            List<GameObject> instatiatedBoats = boatGenerator.RegenerateObjects(storedboats);
+
+            foreach (GameObject boatObject in instatiatedBoats)
+            {
+                _activeBoats.Add(boatObject.GetComponent<BoatLogic>());
+                boatObject.GetComponent<BoatLogic>().AwakeUp();
+            }
+
+
+            _runningSimulation = true;
+        }
     }
 }
