@@ -76,6 +76,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   points: 0
+  steps: 0
   rayRadius: 16
   sight: 30
   movingSpeed: 5
@@ -84,11 +85,9 @@ MonoBehaviour:
   distanceFactor: 1
   boatWeight: 0
   boatDistanceFactor: 0
-  enemyWeight: -1
-  enemyDistanceFactor: -1
-  visionColor: {r: 0.21466713, g: 0.29546288, b: 0.6792453, a: 1}
-  foundColor: {r: 0.59033465, g: 0.59780955, b: 0.6226415, a: 1}
-  directionColor: {r: 0.4433962, g: 0.39784816, b: 0.10666606, a: 1}
+  visionColor: {r: 0.21568628, g: 0.6784314, b: 0.32989472, a: 1}
+  foundColor: {r: 0.8301887, g: 0.7067568, b: 0.246707, a: 1}
+  directionColor: {r: 0.44313726, g: 0.10588235, b: 0.4121963, a: 1}
   debug: 1
 --- !u!1 &8773015827127742611
 GameObject:

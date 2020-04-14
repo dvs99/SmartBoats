@@ -15,6 +15,10 @@ public class GenerateObjectsInArea : MonoBehaviour
     private GameObject[] gameObjectToBeCreated;
     [SerializeField, Tooltip("Number of objects to be created.")]
     private uint count;
+    [SerializeField, Tooltip("Cube to stretch to create the wall. If null the wall wont be created.")]
+    private GameObject wallCube;
+    [SerializeField, Tooltip("Wall height. Ignored if wallCube is null.")]
+    private uint wallHeight;
 
     [Space(10)]
     [Header("Variation")]
@@ -47,11 +51,11 @@ public class GenerateObjectsInArea : MonoBehaviour
     /// <returns></returns>
     public List<GameObject> RegenerateObjects()
     {
-        for (int i = transform.childCount - 1; i >= 0; --i)
-        {
-            DestroyImmediate(transform.GetChild(i).gameObject);
-        }
-        
+        RemoveChildren();
+
+        GenerateWalls();
+
+
         List<GameObject> newObjects = new List<GameObject>();
         for (uint i = 0; i < count; i++)
         {
@@ -66,10 +70,9 @@ public class GenerateObjectsInArea : MonoBehaviour
     public List<GameObject> RegenerateObjects(GameObject[] gameObjects)
     {
 
-        for (int i = transform.childCount - 1; i >= 0; --i)
-        {
-            DestroyImmediate(transform.GetChild(i).gameObject);
-        }
+        RemoveChildren();
+
+        GenerateWalls();
 
         List<GameObject> newObjects = new List<GameObject>();
         for (uint i = 0; i < count && i<gameObjects.Length; i++)
@@ -108,5 +111,34 @@ public class GenerateObjectsInArea : MonoBehaviour
         return Quaternion.Euler(Random.Range(randomRotationMinimal.x, randomRotationMaximal.x),
             Random.Range(randomRotationMinimal.y, randomRotationMaximal.y),
             Random.Range(randomRotationMinimal.z, randomRotationMaximal.z));
+    }
+
+    /// <summary>
+    /// Creates walls on the bounds of this object.
+    /// </summary>
+    /// <returns></returns>
+    public void GenerateWalls()
+    {
+        if (wallCube != null)
+        {
+            Transform cube = Instantiate(wallCube, transform).transform;
+            cube.localScale = new Vector3(cube.localScale.x / cube.lossyScale.x, cube.localScale.y * wallHeight / cube.lossyScale.y, cube.localScale.z* _bounds.extents.z*2/cube.lossyScale.z);
+            cube.position = new Vector3(_bounds.min.x-cube.lossyScale.x/2,wallHeight/2 - 0.001f, 0);
+
+            cube = Instantiate(wallCube, transform).transform;
+            cube.localScale = new Vector3(cube.localScale.x / cube.lossyScale.x, cube.localScale.y * wallHeight / cube.lossyScale.y, cube.localScale.z * _bounds.extents.z * 2 / cube.lossyScale.z);
+            cube.position = new Vector3(_bounds.max.x+ cube.lossyScale.x / 2, wallHeight / 2 - 0.001f, 0);
+
+            cube = Instantiate(wallCube, transform).transform;
+            cube.localScale = new Vector3(cube.localScale.x * _bounds.extents.x * 2 / cube.lossyScale.x, cube.localScale.y * wallHeight / cube.lossyScale.y, cube.localScale.z / cube.lossyScale.z);
+            cube.position = new Vector3(0, wallHeight / 2 - 0.001f, _bounds.min.z- cube.lossyScale.z / 2);
+
+            cube = Instantiate(wallCube, transform).transform;
+            cube.localScale = new Vector3(cube.localScale.x * _bounds.extents.x * 2 / cube.lossyScale.x, cube.localScale.y * wallHeight / cube.lossyScale.y, cube.localScale.z / cube.lossyScale.z);
+            cube.position = new Vector3(0, wallHeight / 2 -0.001f, _bounds.max.z+ cube.lossyScale.z / 2);
+
+
+        }
+
     }
 }
