@@ -28,8 +28,6 @@ public class GenerateObjectsInArea : MonoBehaviour
         _bounds = GetComponent<Renderer>().bounds;
     }
 
-    public uint GetCount() { return count; }
-
     /// <summary>
     /// Remove all children objects. Uses DestroyImmediate.
     /// </summary>
@@ -67,27 +65,23 @@ public class GenerateObjectsInArea : MonoBehaviour
 
     public List<GameObject> RegenerateObjects(GameObject[] gameObjects)
     {
-        if (gameObjects.Length == count)
+
+        for (int i = transform.childCount - 1; i >= 0; --i)
         {
-
-            for (int i = transform.childCount - 1; i >= 0; --i)
-            {
-                DestroyImmediate(transform.GetChild(i).gameObject);
-            }
-
-            List<GameObject> newObjects = new List<GameObject>();
-            for (uint i = 0; i < count; i++)
-            {
-                GameObject created = Instantiate(gameObjects[i], GetRandomPositionInWorldBounds(), GetRandomRotation());
-                created.transform.parent = transform;
-                //prevents objects from being scaled when adding them to the generator
-                created.transform.localScale = new Vector3(created.transform.localScale.x * transform.localScale.x, created.transform.localScale.y * transform.localScale.y, created.transform.localScale.z * transform.localScale.z);
-                newObjects.Add(created);
-            }
-
-            return newObjects;
+            DestroyImmediate(transform.GetChild(i).gameObject);
         }
-        return null;
+
+        List<GameObject> newObjects = new List<GameObject>();
+        for (uint i = 0; i < count && i<gameObjects.Length; i++)
+        {
+            GameObject created = Instantiate(gameObjects[i], GetRandomPositionInWorldBounds(), GetRandomRotation());
+            created.transform.parent = transform;
+            //prevents objects from being scaled when adding them to the generator
+            created.transform.localScale = new Vector3(created.transform.localScale.x * transform.localScale.x, created.transform.localScale.y * transform.localScale.y, created.transform.localScale.z * transform.localScale.z);
+            newObjects.Add(created);
+        }
+
+        return newObjects;
     }
 
     /// <summary>

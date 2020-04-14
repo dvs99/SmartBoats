@@ -216,7 +216,7 @@ public class GenerationManager : MonoBehaviour
     /// </summary>
     public void StartSimulationStored()
     {
-        if (boatGenerator.GetCount()==storedboats.Length)
+        if (storedboats.Length>boatParentSize)
         {
             GenerateBoxes();
             simulationCount = 0;
@@ -224,7 +224,7 @@ public class GenerationManager : MonoBehaviour
 
             _boatParents = null;
 
-            _activeBoats.Clear();
+            _activeBoats = new List<BoatLogic>();
 
             List<GameObject> instatiatedBoats = boatGenerator.RegenerateObjects(storedboats);
 
@@ -233,7 +233,6 @@ public class GenerationManager : MonoBehaviour
                 _activeBoats.Add(boatObject.GetComponent<BoatLogic>());
                 boatObject.GetComponent<BoatLogic>().AwakeUp();
             }
-
 
             _runningSimulation = true;
         }
