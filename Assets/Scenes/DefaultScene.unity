@@ -739,9 +739,10 @@ MonoBehaviour:
   gameObjectToBeCreated:
   - {fileID: 5755888960359600254, guid: 296e89e62486b42ccaa7c506e58ae38a, type: 3}
   count: 100
-  wallCube: {fileID: 0}
-  wallHeight: 0
-  wallWidth: 2
+  wallCube: {fileID: 1332034913161487506, guid: e6faa41e5bad5b743854a19ddc010003,
+    type: 3}
+  wallHeight: 4
+  wallWidth: 3
   randomRotationMinimal: {x: 10, y: -89, z: 6}
   randomRotationMaximal: {x: 10, y: 90, z: 6}
 --- !u!1 &1267651816
@@ -1018,7 +1019,7 @@ MonoBehaviour:
   simulationTimer: 8
   simulationCount: 0
   runOnStart: 0
-  generationCount: 0
+  roundCount: 0
   saveCompleteGenerations: 0
   savePrefabsAt: Assets/Prefabs/SavedGeneration
   saveScoreDataAt: Assets/Prefabs/SavedGeneration/scores.txt
@@ -1180,10 +1181,9 @@ MonoBehaviour:
   gameObjectToBeCreated:
   - {fileID: 8773015827127742609, guid: 80e4d4b3329284f7299a2d55a9f1b594, type: 3}
   count: 10
-  wallCube: {fileID: 1332034913161487506, guid: e6faa41e5bad5b743854a19ddc010003,
-    type: 3}
-  wallHeight: 4
-  wallWidth: 3
+  wallCube: {fileID: 0}
+  wallHeight: 0
+  wallWidth: 0
   randomRotationMinimal: {x: 0, y: -89, z: 0}
   randomRotationMaximal: {x: 0, y: 90, z: 0}
 --- !u!64 &1829776930

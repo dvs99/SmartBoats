@@ -12,7 +12,7 @@ public class GenerationManagerEditor : Editor
         base.DrawDefaultInspector();
         if (GUILayout.Button("Clear Scores"))
         {
-            (target as GenerationManager)?.clearScoresFile();
+            (target as GenerationManager)?.ClearScoresFile();
         }
         if (GUILayout.Button("Generate Boxes"))
         {
@@ -37,6 +37,14 @@ public class GenerationManagerEditor : Editor
         if (GUILayout.Button("Start Simulation From Stored Boats"))
         {
             (target as GenerationManager)?.StartSimulationStored();
+        }
+        if (GUILayout.Button("Start Play Mode"))
+        {
+            (target as GenerationManager)?.StartPlayMode();
+        }
+        if (GUILayout.Button("Stop Play Mode"))
+        {
+            (target as GenerationManager)?.StopPlayMode();
         }
     }
 }
