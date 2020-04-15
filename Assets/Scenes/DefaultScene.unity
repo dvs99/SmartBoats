@@ -1015,7 +1015,10 @@ MonoBehaviour:
   boatGenerator: {fileID: 1829776929}
   mutationFactor: 3.5
   mutationChance: 35
-  boatParentSize: 5
+  boatParentSize: 4
+  stochastic: 0
+  randomnessReductionFactor: 0
+  crossover: 0
   simulationTimer: 8
   simulationCount: 0
   runOnStart: 0

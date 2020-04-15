@@ -8,6 +8,7 @@ using Random = UnityEngine.Random;
 
 public class GenerationManager : MonoBehaviour
 {
+
     [Header("Generators")]
     [SerializeField]
     private GenerateObjectsInArea[] boxGenerators;
@@ -23,7 +24,12 @@ public class GenerationManager : MonoBehaviour
     private float mutationChance;
     [SerializeField]
     private int boatParentSize;
-
+    [SerializeField, Tooltip("If true makes parent selection stochastic instead of deterministic")]
+    private bool stochastic;
+    [SerializeField, Tooltip("Used in stochastic search so it's less probable to pick worse players: if 1 then p(pick worst player = 0) if 0 then chance is exactly proportional to scored points"), Range(0f, 1f) ]
+    private float randomnessReductionFactor;
+    [SerializeField, Tooltip("If true uses a genetic evolution algorithm for genes crossover")]
+    private bool crossover;
 
     [Space(10)]
     [Header("Simulation Controls")]
@@ -156,16 +162,6 @@ public class GenerationManager : MonoBehaviour
         _activeBoats.RemoveAll(item => item == null);
         _activeBoats.Sort();
 
-        if (_activeBoats.Count == 0)
-        {
-            GenerateBoats(_boatParents);
-        }
-        _boatParents = new BoatLogic[boatParentSize];
-        for (int i = 0; i < boatParentSize; i++)
-        {
-            _boatParents[i] = _activeBoats[i];
-        }
-
         //Winner:
         BoatLogic lastBoatWinner = _activeBoats[0];
         Debug.Log("Last winner boat had: " + lastBoatWinner.GetPoints() + " points!");
@@ -190,7 +186,75 @@ public class GenerationManager : MonoBehaviour
             PrefabUtility.SaveAsPrefabAsset(lastBoatWinner.gameObject, savePrefabsAt + "/" + lastBoatWinner.name + ".prefab");
         }
 
+
+        if (_activeBoats.Count == 0)
+        {
+            GenerateBoats();
+            return;
+        }
+
+        if (!stochastic)
+        {
+            _boatParents = new BoatLogic[boatParentSize];
+            for (int i = 0; i < boatParentSize; i++)
+                _boatParents[i] = _activeBoats[i];
+        }
+        else stochasticSearch();
+
         GenerateBoats(_boatParents);
+    }
+
+
+    /// <summary>
+    ///Stochastic search implemetation in O(_activeBoats ^ boatParentsize) -could be improved-, for details see wiki page in github repository
+    /// </summary>
+    private void stochasticSearch()
+    {
+        List<float> probabilityList = new List<float>();
+        float total = 0;
+
+        //fist truncate the points to reduce probability of picking worst players
+        for (int i = 0; i < _activeBoats.Count; i++)
+        {
+            float truncatedPoints = _activeBoats[i].GetPoints() - (_activeBoats[_activeBoats.Count - 1].GetPoints()*randomnessReductionFactor);
+            probabilityList.Add(truncatedPoints);
+        }
+
+        for (int boatParentIndex = 0; boatParentIndex < _boatParents.Length; boatParentIndex++, total = 0)
+        {
+            //add elements to get total
+            for (int i = 0; i < probabilityList.Count; i++)
+            {
+                total += probabilityList[i];
+            }
+
+            if (total == 0)
+            {
+                _activeBoats.RemoveAt(0);
+                probabilityList.RemoveAt(0);
+                continue;
+            }
+
+            //normalize the points so that the probability adds up to 1
+            for (int i = 0; i < probabilityList.Count; i++)
+                probabilityList[i] /= total;
+
+            float r = Random.value;
+
+            //get a random item from the list given the probability
+            for (int i = probabilityList.Count - 1; i >= 0; i--)
+            {
+                r -= probabilityList[i];
+                if (r <= 0)
+                {
+                    _boatParents[boatParentIndex] = _activeBoats[i];
+                    _activeBoats.RemoveAt(i);
+                    probabilityList.RemoveAt(i);
+                    break;
+                }
+
+            }
+        }
     }
 
     /// <summary>
