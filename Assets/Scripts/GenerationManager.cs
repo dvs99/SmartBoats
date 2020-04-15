@@ -193,9 +193,9 @@ public class GenerationManager : MonoBehaviour
             return;
         }
 
+        _boatParents = new BoatLogic[boatParentSize];
         if (!stochastic)
         {
-            _boatParents = new BoatLogic[boatParentSize];
             for (int i = 0; i < boatParentSize; i++)
                 _boatParents[i] = _activeBoats[i];
         }
