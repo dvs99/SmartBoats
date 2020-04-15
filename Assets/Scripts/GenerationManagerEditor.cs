@@ -10,7 +10,10 @@ public class GenerationManagerEditor : Editor
     public override void OnInspectorGUI()
     {
         base.DrawDefaultInspector();
-        
+        if (GUILayout.Button("Clear Scores"))
+        {
+            (target as GenerationManager)?.clearScoresFile();
+        }
         if (GUILayout.Button("Generate Boxes"))
         {
             (target as GenerationManager)?.GenerateBoxes();

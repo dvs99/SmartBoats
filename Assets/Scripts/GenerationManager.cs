@@ -68,13 +68,8 @@ public class GenerationManager : MonoBehaviour
         if (savePrefabsAt[savePrefabsAt.Length - 1] == '/')
             savePrefabsAt = savePrefabsAt.Substring(0, savePrefabsAt.Length - 1);
 
-        StreamWriter file = new StreamWriter(saveScoreDataAt);
-        file.Write("");
-        file.Close();
-
         scoreWriter = new StreamWriter(saveScoreDataAt, true);
         scoreWriter.AutoFlush = true;
-        scoreWriter.WriteLine("Scores");
 
         if (runOnStart)
         {
@@ -200,6 +195,7 @@ public class GenerationManager : MonoBehaviour
      /// </summary>
     public void StartSimulation()
     {
+        clearScoresFile();
         simulationCount = 0;
         generationCount = 0;
         _boatParents = null;
@@ -214,9 +210,12 @@ public class GenerationManager : MonoBehaviour
      /// </summary>
      public void ContinueSimulation()
      {
-        simulationCount = 0;
-        MakeNewGeneration();
-         _runningSimulation = true;
+        if (!_runningSimulation && _activeBoats!=null && _activeBoats.Count>0)
+        {
+            simulationCount = 0;
+            MakeNewGeneration();
+            _runningSimulation = true;
+        }
      }
 
     /// <summary>
@@ -226,8 +225,11 @@ public class GenerationManager : MonoBehaviour
     public void StopSimulation()
     {
         _runningSimulation = false;
-        _activeBoats.RemoveAll(item => item == null);
-        _activeBoats.ForEach(boat => boat.Sleep());
+        if (_activeBoats != null)
+        {
+            _activeBoats.RemoveAll(item => item == null);
+            _activeBoats.ForEach(boat => boat.Sleep());
+        }
     }
 
     /// <summary>
@@ -254,6 +256,27 @@ public class GenerationManager : MonoBehaviour
             }
 
             _runningSimulation = true;
+        }
+    }
+
+    public void clearScoresFile()
+    {
+        print("hi");
+        try
+        {
+            scoreWriter.Close();
+            StreamWriter file = new StreamWriter(saveScoreDataAt);
+            file.Write("");
+            file.Close();
+
+            scoreWriter = new StreamWriter(saveScoreDataAt, true);
+            scoreWriter.AutoFlush = true;
+            scoreWriter.WriteLine("Scores");
+            Debug.Log("Scores file cleared");
+        }
+        catch
+        {
+            Debug.LogWarning("Error when clearing the scores file, be aware it may still contain other data");
         }
     }
 }

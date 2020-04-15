@@ -19,6 +19,8 @@ public class GenerateObjectsInArea : MonoBehaviour
     private GameObject wallCube;
     [SerializeField, Tooltip("Wall height. Ignored if wallCube is null.")]
     private uint wallHeight;
+    [SerializeField, Tooltip("Wall width. Ignored if wallCube is null.")]
+    private uint wallWidth = 2;
 
     [Space(10)]
     [Header("Variation")]
@@ -122,19 +124,19 @@ public class GenerateObjectsInArea : MonoBehaviour
         if (wallCube != null)
         {
             Transform cube = Instantiate(wallCube, transform).transform;
-            cube.localScale = new Vector3(cube.localScale.x / cube.lossyScale.x, cube.localScale.y * wallHeight / cube.lossyScale.y, cube.localScale.z* _bounds.extents.z*2/cube.lossyScale.z);
+            cube.localScale = new Vector3(cube.localScale.x * wallWidth / cube.lossyScale.x, cube.localScale.y * wallHeight / cube.lossyScale.y, cube.localScale.z* _bounds.extents.z*2/cube.lossyScale.z);
             cube.position = new Vector3(_bounds.min.x-cube.lossyScale.x/2,wallHeight/2 - 0.001f, 0);
 
             cube = Instantiate(wallCube, transform).transform;
-            cube.localScale = new Vector3(cube.localScale.x / cube.lossyScale.x, cube.localScale.y * wallHeight / cube.lossyScale.y, cube.localScale.z * _bounds.extents.z * 2 / cube.lossyScale.z);
+            cube.localScale = new Vector3(cube.localScale.x * wallWidth / cube.lossyScale.x, cube.localScale.y * wallHeight / cube.lossyScale.y, cube.localScale.z * _bounds.extents.z * 2 / cube.lossyScale.z);
             cube.position = new Vector3(_bounds.max.x+ cube.lossyScale.x / 2, wallHeight / 2 - 0.001f, 0);
 
             cube = Instantiate(wallCube, transform).transform;
-            cube.localScale = new Vector3(cube.localScale.x * _bounds.extents.x * 2 / cube.lossyScale.x, cube.localScale.y * wallHeight / cube.lossyScale.y, cube.localScale.z / cube.lossyScale.z);
+            cube.localScale = new Vector3(cube.localScale.x * _bounds.extents.x * 2 / cube.lossyScale.x, cube.localScale.y * wallHeight / cube.lossyScale.y, cube.localScale.z * wallWidth / cube.lossyScale.z);
             cube.position = new Vector3(0, wallHeight / 2 - 0.001f, _bounds.min.z- cube.lossyScale.z / 2);
 
             cube = Instantiate(wallCube, transform).transform;
-            cube.localScale = new Vector3(cube.localScale.x * _bounds.extents.x * 2 / cube.lossyScale.x, cube.localScale.y * wallHeight / cube.lossyScale.y, cube.localScale.z / cube.lossyScale.z);
+            cube.localScale = new Vector3(cube.localScale.x * _bounds.extents.x * 2 / cube.lossyScale.x, cube.localScale.y * wallHeight / cube.lossyScale.y, cube.localScale.z * wallWidth / cube.lossyScale.z);
             cube.position = new Vector3(0, wallHeight / 2 -0.001f, _bounds.max.z+ cube.lossyScale.z / 2);
 
 
