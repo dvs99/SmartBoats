@@ -1012,14 +1012,34 @@ MonoBehaviour:
   mutationFactor: 3.5
   mutationChance: 35
   boatParentSize: 5
-  simulationTimer: 10
+  simulationTimer: 8
   simulationCount: 0
   runOnStart: 0
   generationCount: 0
   saveCompleteGenerations: 0
   savePrefabsAt: Assets/Prefabs/SavedGeneration
+  saveScoreDataAt: Assets/Prefabs/SavedGeneration/scores.txt
   storedboats:
-  - {fileID: 519184900068062996, guid: 071c62ee8ae0f2444a59b1bca9f62e7d, type: 3}
+  - {fileID: 7261134962885508434, guid: 0c50ceff02352d24cb445175001eaa85, type: 3}
+  - {fileID: 4435908685565921985, guid: e08045c3f22883c4f9054c854f037ba2, type: 3}
+  - {fileID: 2152753697025051302, guid: c1d6302eee876724b81ba258210784fa, type: 3}
+  - {fileID: 494250549080263522, guid: e59d464798e02e54ea8d2a3d93a82748, type: 3}
+  - {fileID: 5783476388289547856, guid: 0eeb6316f81791d4fabd803cc93a8e9b, type: 3}
+  - {fileID: 1256224411348603567, guid: 374801996b290624aa8c26fb0663e932, type: 3}
+  - {fileID: 3156270609874780967, guid: 3804db7fb2736a2458b9628719159c63, type: 3}
+  - {fileID: 3950055023281358239, guid: f24a5bfc7e3e0cc4db09e6951612a95b, type: 3}
+  - {fileID: 7684442149191186658, guid: 280260f4e3f93214aa4cb381e6e356ec, type: 3}
+  - {fileID: 8604668672378790606, guid: 6968ff5830455304ebb3aa18c19d9e64, type: 3}
+  - {fileID: 4849696948293561451, guid: dcf70ec01f00aa040a4d241d8ba77f2e, type: 3}
+  - {fileID: 1829777033299263187, guid: 8766db4c52c12ae498dbde0676686913, type: 3}
+  - {fileID: 5528411428527044029, guid: d1aca54f33fc49e49ae3844a21d7ca38, type: 3}
+  - {fileID: 3446305610541516296, guid: 530a45f37876ab844be8df859a0aeda3, type: 3}
+  - {fileID: 854772948895491063, guid: 0b064852e6718944a99220aa8ed3977a, type: 3}
+  - {fileID: 8081092962876331074, guid: 2a2ae19c639e32f4cb814eaffc130c71, type: 3}
+  - {fileID: 2478206682491573131, guid: 8deffcf4b8971aa4fb8774a23bef63da, type: 3}
+  - {fileID: 4394698559429060926, guid: 510372587f493ff4688d11ad04e0fc83, type: 3}
+  - {fileID: 2610943087628873573, guid: f499fe0348279d4449f16c416a3722b8, type: 3}
+  - {fileID: 4309975942468602777, guid: ef09191f119064f44b2ba25c3e969e63, type: 3}
   lastBoatWinnerData:
     steps: 0
     rayRadius: 0
@@ -1176,7 +1196,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   gameObjectToBeCreated:
   - {fileID: 8773015827127742609, guid: 80e4d4b3329284f7299a2d55a9f1b594, type: 3}
-  count: 30
+  count: 10
   wallCube: {fileID: 1332034913161487506, guid: e6faa41e5bad5b743854a19ddc010003,
     type: 3}
   wallHeight: 4

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using UnityEditor;
 using UnityEngine;
 using Random = UnityEngine.Random;
@@ -36,13 +37,16 @@ public class GenerationManager : MonoBehaviour
     private int generationCount;
 
     [Space(10)] 
-    [Header("Prefab Saving and storage")]
+    [Header("Saving and storage")]
     [SerializeField]
     private bool saveCompleteGenerations;
     [SerializeField]
     private string savePrefabsAt;
+    [SerializeField, Tooltip("txt file storing the scores")]
+    private string saveScoreDataAt;
     [SerializeField, Tooltip("Add stored prefabs here to use them.")]
     private GameObject[] storedboats;
+
 
     /// <summary>
     /// Those variables are used mostly for debugging in the inspector.
@@ -55,12 +59,22 @@ public class GenerationManager : MonoBehaviour
     private bool _runningSimulation;
     private List<BoatLogic> _activeBoats;
     private BoatLogic[] _boatParents;
-    
+    private StreamWriter scoreWriter;
+
+
     private void Start()
     {
-        //if savePrefabsAt endes in / we need to remove it so AssetDatabase.CreateFolder works
+        //if savePrefabsAt ends in '/' we need to remove it so AssetDatabase.CreateFolder works
         if (savePrefabsAt[savePrefabsAt.Length - 1] == '/')
             savePrefabsAt = savePrefabsAt.Substring(0, savePrefabsAt.Length - 1);
+
+        StreamWriter file = new StreamWriter(saveScoreDataAt);
+        file.Write("");
+        file.Close();
+
+        scoreWriter = new StreamWriter(saveScoreDataAt, true);
+        scoreWriter.AutoFlush = true;
+        scoreWriter.WriteLine("Scores");
 
         if (runOnStart)
         {
@@ -83,7 +97,12 @@ public class GenerationManager : MonoBehaviour
         }
     }
 
-     
+    private void OnDestroy()
+    {
+        scoreWriter.Close();
+
+    }
+
     /// <summary>
     /// Generates the boxes on all box areas.
     /// </summary>
@@ -151,6 +170,8 @@ public class GenerationManager : MonoBehaviour
         //Winner:
         BoatLogic lastBoatWinner = _activeBoats[0];
         Debug.Log("Last winner boat had: " + lastBoatWinner.GetPoints() + " points!");
+        scoreWriter.WriteLine(generationCount + " " + lastBoatWinner.GetPoints());
+
 
         //we save the generation sorted by how well each boat performed or we save just the best boat
         if (saveCompleteGenerations)
@@ -159,7 +180,6 @@ public class GenerationManager : MonoBehaviour
             string newFolderPath = AssetDatabase.GUIDToAssetPath(guid);
             for (int i = 0; i < _activeBoats.Count; i++)
             {
-                print(i);
                 _activeBoats[i].name = "(" + (i + 1) + ")" + _activeBoats[i].name + "Gen-" + generationCount;
                 PrefabUtility.SaveAsPrefabAsset(_activeBoats[i].gameObject, newFolderPath + "/" + _activeBoats[i].name + ".prefab");
             }
@@ -220,7 +240,6 @@ public class GenerationManager : MonoBehaviour
         {
             GenerateBoxes();
             simulationCount = 0;
-            generationCount = 0;
 
             _boatParents = null;
 
