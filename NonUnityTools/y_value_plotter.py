@@ -25,6 +25,12 @@ import time, threading, _thread
 filePath = Path("C:/Users/dvsna/Desktop/GitHubProjects/SmartBoats/Assets/Prefabs/SavedGeneration/scores.txt")
 plotName=""
 plotX="Generations"
+notBelowZero=True
+plotAverage = 20 #number of values to average, 0 makes the average not to be drawn
+plotDataInstantly=True
+
+lineColor='red'
+lineAverageColor='blue'
 plt.style.use('ggplot')
 
 
@@ -33,29 +39,37 @@ def closeHandler(evt):
     windowClosed=True
 
 #The method below is for updating both x and y values. Method originaly modified from live_plotter_xy on pylive(https://github.com/makerportal/pylive)
-def live_plotter_xy(x_vec,y1_data,line1,pause_time=0.01):
+def live_plotter_xy(x_vec,y1_data,line1,color,scale=True,marker='o',zorder=0,lw=1,ms=1,pause_time=0.01):
     global windowClosed
-    if line1==[]:
-        plt.ion()
-        fig = plt.figure(figsize=(13,6))
-        ax = fig.add_subplot(111)
-        line1, = ax.plot(x_vec,y1_data,'r-o',alpha=0.8)
-        line1.figure.canvas.mpl_connect('close_event', closeHandler)
-        plt.xlabel(plotX)
-        plt.ylabel(plotY)
-        plt.title(plotName)
-        plt.show()
+    global fig
+    if (line1==[]):
+        if (fig == []):
+            plt.ion()
+            fig = plt.figure(figsize=(13,6))
+            fig.canvas.mpl_connect('close_event', closeHandler)
+            plt.xlabel(plotX)
+            plt.ylabel(plotY)
+            plt.title(plotName)
+            plt.ylim(bottom =0)
+            plt.show()
+        line1 = plt.plot(x_vec,y1_data,color=color,marker=marker,lw=lw,ms=ms)[0]
+
     line1.set_data(x_vec,y1_data)
 
     #if the user closed the plot window exit the program
     if(not windowClosed):
-        plt.xlim(np.min(x_vec),np.max(x_vec))
-        if np.min(y1_data)<=line1.axes.get_ylim()[0] or np.max(y1_data)>=line1.axes.get_ylim()[1]:
-            plt.ylim([np.min(y1_data)-np.std(y1_data),np.max(y1_data)+np.std(y1_data)])
+        if (scale):
+            plt.xlim(np.min(x_vec),np.max(x_vec))
+            if np.min(y1_data)<=line1.axes.get_ylim()[0] or np.max(y1_data)>=line1.axes.get_ylim()[1]:
+                if(notBelowZero):
+                    plt.ylim(top =np.max(y1_data)+np.std(y1_data))
+                else:
+                    plt.ylim([np.min(y1_data)-np.std(y1_data),np.max(y1_data)+np.std(y1_data)])
     else:
         _thread.interrupt_main()
     
-    plt.pause(pause_time)
+    if (pause_time>0):
+        plt.pause(pause_time)
 
     return line1
 
@@ -68,15 +82,6 @@ def tryGetFirstValues():
             index, value = line.strip().split(' ', 1)
             values.insert(int(index), int(value))
 
-plotY=""
-values = []
-
-tryGetFirstValues()
-while (len(values)<2):
-    print("Waiting to have at least 2 values...")
-    time.sleep(0.2)
-    tryGetFirstValues()
-
 #check for new or undrawn values and draw
 def mainLoop():
     global lastValueIndex
@@ -84,6 +89,13 @@ def mainLoop():
     global y_vec
     global line1
     global paused
+    global paused
+    global currentAverageSum
+    global currentAverageCount
+    global xAverage
+    global yAverage
+    global lineAverage
+    global fig
 
     while True:
         if(not paused):
@@ -96,23 +108,66 @@ def mainLoop():
                     index, value = line.strip().split(' ', 1)
                     values.insert(int(index), int(value))
                 #draw a new value if we have any left
-                if(len(values)>lastValueIndex):
+                while(len(values)>lastValueIndex):
                     x_vec = np.append(x_vec,lastValueIndex)
                     y_vec = np.append(y_vec,values[lastValueIndex])
+
+                    #plot average line
+                    if (plotAverage>1):
+                        currentAverageSum+=values[lastValueIndex]
+                        currentAverageCount+=1
+                        if (plotAverage==currentAverageCount):
+                            xAverage = np.append(xAverage, len(xAverage)*plotAverage + plotAverage/2)
+                            yAverage = np.append(yAverage, float(currentAverageSum)/currentAverageCount)
+                            currentAverageCount=0
+                            currentAverageSum=0
+
                     lastValueIndex+=1
 
-            line1 = live_plotter_xy(x_vec,y_vec,line1)
+                    if(not plotDataInstantly):
+                        break
+
+
+            line1 = live_plotter_xy(x_vec,y_vec,line1,lineColor, True,lw=0.5,ms=1.5,pause_time=0)
+            if(len(xAverage)>=2):
+                lineAverage = live_plotter_xy(xAverage,yAverage,lineAverage,lineAverageColor, False, False, 1,lw=1.5,pause_time=0)
+            plt.pause(0.005)
+
         else:
             try:
                 plt.pause(0.2)
             except:
                 _thread.interrupt_main()
 
+plotY=""
+values = []
+
+tryGetFirstValues()
+while (len(values)<2):
+    print("Waiting to have at least 2 values...")
+    time.sleep(0.2)
+    tryGetFirstValues()
 
 lastValueIndex=2
-x_vec = np.linspace(0,1,lastValueIndex,dtype=int)
-y_vec = np.linspace(values[0],values[1],lastValueIndex,dtype=int)
+fig =[]
+
+currentAverageSum=values[0] + values[1]
+currentAverageCount=2
+lineAverage = []
+xAverage = np.array([])
+yAverage = np.array([])
+
+if (plotAverage==2):
+    xAverage = np.append(xAverage,[0])
+    yAverage = np.append(yAverage,currentAverageSum/currentAverageCount)
+    currentAverageCount=0
+    currentAverageSum=0
+
+x_vec = np.array([0,1])
+y_vec = np.array([values[0],values[1]])
 line1 = []
+
+
 paused = False
 windowClosed = False
 
