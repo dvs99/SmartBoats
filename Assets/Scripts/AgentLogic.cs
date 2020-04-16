@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -188,6 +190,165 @@ public class AgentLogic : MonoBehaviour, IComparable
         wallWeight = parent.wallWeight;
         wallDistanceFactor = parent.wallDistanceFactor;
     }
+
+    public void Birth(List<float> DNA)
+    {
+        steps = (int)DNA[0];
+        rayRadius = (int)DNA[1];
+        sight = DNA[2];
+        movingSpeed = DNA[3];
+        randomDirectionValue = new Vector2(DNA[4], DNA[5]);
+        boxWeight = DNA[6];
+        distanceFactor = DNA[7];
+        x4boxWeight = DNA[8];
+        x4distanceFactor = DNA[9];
+        x16boxWeight = DNA[10];
+        x16distanceFactor = DNA[11];
+        boatWeight = DNA[12];
+        boatDistanceFactor = DNA[13];
+        wallWeight = DNA[14];
+        wallDistanceFactor = DNA[15];
+    }
+
+    public void Birth(List<Tuple<float,float>> DNA)
+    {
+        steps = (int)DNA[0].Item1;
+        rayRadius = (int)DNA[1].Item1;
+        sight = DNA[2].Item1;
+        movingSpeed = DNA[3].Item1;
+        randomDirectionValue = new Vector2(DNA[4].Item1, DNA[4].Item2);
+        boxWeight = DNA[5].Item1;
+        distanceFactor = DNA[5].Item2;
+        x4boxWeight = DNA[6].Item1;
+        x4distanceFactor = DNA[6].Item2;
+        x16boxWeight = DNA[7].Item1;
+        x16distanceFactor = DNA[7].Item2;
+        boatWeight = DNA[8].Item1;
+        boatDistanceFactor = DNA[8].Item2;
+        wallWeight = DNA[9].Item1;
+        wallDistanceFactor = DNA[9].Item2;
+    }
+
+    /// <summary>
+    /// Copies the genes / weights from the parents to two children by performing a N-point crossover between them.
+    /// Performen in O(numberOfGenes)
+    /// </summary>
+    /// <param name="parent"></param><param name="otherParent"></param>
+    public void NPointCrossoverBirth(AgentData parent, AgentData otherParent, AgentLogic sibling, bool useGroupedGenes)
+    {
+        //serialize the genes/weights
+        IList parentDNA;
+        IList otherParentDNA;
+        if (!useGroupedGenes)
+        {
+            parentDNA = SerializeDNA(parent);
+            otherParentDNA = SerializeDNA(otherParent);
+        }
+        else
+        {
+            parentDNA = SerializeGroupedDNA(parent);
+            otherParentDNA = SerializeGroupedDNA(otherParent);
+        }
+
+        //select a random number of pieces to break the DNA into
+        int n = Random.Range(2, parentDNA.Count);
+        int[] crossoverAccumulatedLenghts = new int[n];
+        int accumulatedLenght = 0;
+
+        for (int i = 0; i < crossoverAccumulatedLenghts.Length - 1; i++)
+        {
+            int maxSectionLength = parentDNA.Count - accumulatedLenght - (n - i - 1);
+            accumulatedLenght += Random.Range(1, maxSectionLength);
+            crossoverAccumulatedLenghts[i] = accumulatedLenght;
+        }
+        crossoverAccumulatedLenghts[n - 1] = parentDNA.Count;
+
+
+        //do the actual crossover between parents
+        bool switchedParents = false;
+        IList childDNA = new object[parentDNA.Count];
+        IList otherChildDNA = new object[parentDNA.Count];
+        for (int i = 0, parentsIndex = 0; i < crossoverAccumulatedLenghts.Length; i++)
+        {
+            while (parentsIndex < crossoverAccumulatedLenghts[i])
+            {
+                if (!switchedParents)
+                {
+                    childDNA[parentsIndex] = parentDNA[parentsIndex];
+                    otherChildDNA[parentsIndex] = otherParentDNA[parentsIndex];
+                }
+                else
+                {
+                    childDNA[parentsIndex] = otherParentDNA[parentsIndex];
+                    otherChildDNA[parentsIndex] = parentDNA[parentsIndex];
+                }
+                parentsIndex++;
+            }
+            switchedParents = !switchedParents;
+        }
+
+
+        //create children with the new dna
+        if (!useGroupedGenes)
+        {
+            Birth(childDNA.Cast<float>().ToList());
+            sibling.Birth(otherChildDNA.Cast<float>().ToList());
+        }
+        else
+        {
+            Birth(childDNA.Cast<Tuple<float, float>>().ToList());
+            sibling.Birth(otherChildDNA.Cast<Tuple<float, float>>().ToList());
+        }
+    }
+
+
+        /// <summary>
+        /// turns genes into an array of floats. Change DNALegth if new variables are added
+        /// </summary>
+        /// <param name="agent"></param><param name="otherParent"></param>
+    public List<float> SerializeDNA(AgentData agent)
+    {
+        List<float> DNA = new List<float>
+        {
+            agent.steps,
+            agent.rayRadius,
+            agent.sight,
+            agent.movingSpeed,
+            agent.randomDirectionValue.x,
+            agent.randomDirectionValue.y,
+            agent.boxWeight,
+            agent.distanceFactor,
+            agent.x4boxWeight,
+            agent.x4distanceFactor,
+            agent.x16boxWeight,
+            agent.x16distanceFactor,
+            agent.boatWeight,
+            agent.boatDistanceFactor,
+            agent.wallWeight,
+            agent.wallDistanceFactor
+        };
+
+        return DNA;
+    }
+
+    public List<Tuple<float,float>> SerializeGroupedDNA(AgentData agent)
+    {
+        List<Tuple<float, float>> DNA = new List<Tuple<float, float>>()
+        {
+            new Tuple<float, float>(agent.steps, 0),
+            new Tuple<float, float>(agent.rayRadius, 0),
+            new Tuple<float, float>(agent.sight, 0),
+            new Tuple<float, float>(agent.movingSpeed, 0),
+            new Tuple<float, float>(agent.randomDirectionValue.x, agent.randomDirectionValue.y),
+            new Tuple<float, float>(agent.boxWeight, agent.distanceFactor),
+            new Tuple<float, float>(agent.x4boxWeight, agent.x4distanceFactor),
+            new Tuple<float, float>(agent.x16boxWeight, agent.x16distanceFactor),
+            new Tuple<float, float>(agent.boatWeight, agent.boatDistanceFactor),
+            new Tuple<float, float>(agent.wallWeight, agent.wallDistanceFactor)
+        };
+        return DNA;
+    }
+
 
     /// <summary>
     /// Has a mutationChance ([0%, 100%]) of causing a mutationFactor [-mutationFactor, +mutationFactor] to each gene / weight.

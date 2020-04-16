@@ -1013,19 +1013,20 @@ MonoBehaviour:
   - {fileID: 501820973}
   - {fileID: 1267651817}
   boatGenerator: {fileID: 1829776929}
-  mutationFactor: 3.5
+  mutationFactor: 8
   mutationChance: 35
   boatParentSize: 4
-  stochastic: 0
+  stochastic: 1
   randomnessReductionFactor: 0
-  crossover: 0
-  simulationTimer: 8
+  crossover: 1
+  groupedGenes: 1
+  simulationTimer: 6
   simulationCount: 0
-  runOnStart: 0
+  runOnStart: 1
   roundCount: 0
   saveCompleteGenerations: 0
   savePrefabsAt: Assets/Prefabs/SavedGeneration
-  saveScoreDataAt: Assets/Prefabs/SavedGeneration/scores.txt
+  saveScoreDataAt: Assets/scores.txt
   storedboats: []
   lastBoatWinnerData:
     steps: 0
