@@ -30,6 +30,8 @@ public class GenerationManager : MonoBehaviour
     private float randomnessReductionFactor;
     [SerializeField, Tooltip("If true uses a genetic evolution algorithm for genes crossover")]
     private bool crossover;
+    [SerializeField, Tooltip("Used in crossover, defines if we use the gene definition that groups the boats properties in less unbreakeable genes by how related they are (true) or just use each property as a gene itself (false)")]
+    private bool groupedGenes;
 
     [Space(10)]
     [Header("Simulation Controls")]
@@ -76,6 +78,10 @@ public class GenerationManager : MonoBehaviour
 
         scoreWriter = new StreamWriter(saveScoreDataAt, true);
         scoreWriter.AutoFlush = true;
+
+        //prevent the parent size from being 0
+        if (boatParentSize == 0)
+            boatParentSize = 1;
 
         if (runOnStart)
         {
@@ -130,6 +136,14 @@ public class GenerationManager : MonoBehaviour
     {
         _activeBoats = new List<BoatLogic>();
         List<GameObject> objects = boatGenerator.RegenerateObjects();
+        if (boatParents != null && crossover && (boatParents.Length % 2 != 0 || objects.Count % 2 != 0))
+        {
+            crossover = false;
+            Debug.Log("Crossover has been automaticaly disabled. It requires an even number of parents and an even number of children to generate.");
+        }
+
+        BoatLogic prevBoat = null; //used for crossover
+
         foreach (GameObject obj in objects)
         {
             BoatLogic boat = obj.GetComponent<BoatLogic>();
@@ -138,12 +152,43 @@ public class GenerationManager : MonoBehaviour
                 _activeBoats.Add(boat);
                 if (boatParents != null)
                 {
-                    BoatLogic boatParent = boatParents[Random.Range(0, boatParents.Length)];
-                    boat.Birth(boatParent.GetData());
-                }
+                    if (!crossover)
+                    {
+                        BoatLogic boatParent = boatParents[Random.Range(0, boatParents.Length)];
+                        boat.Birth(boatParent.GetData());
+                        boat.Mutate(mutationFactor, mutationChance);
+                        boat.AwakeUp();
+                    }
+                    else //wait to have two children then perform crossover
+                    {
+                        if (prevBoat == null)
+                            prevBoat = boat;
+                        else
+                        {
+                            BoatLogic boatParent = boatParents[Random.Range(0, boatParents.Length)];
+                            BoatLogic otherBoatParent = boatParents[Random.Range(0, boatParents.Length)];
+                            // a parent can happen to match himself, then the offspring will be just two copies of himself 
+                            // this helps limiting how much the parents can mix
 
-                boat.Mutate(mutationFactor, mutationChance);
-                boat.AwakeUp();
+                            boat.NPointCrossoverBirth(boatParent.GetData(), otherBoatParent.GetData(), prevBoat, groupedGenes);
+
+                            boat.Mutate(mutationFactor, mutationChance);
+                            boat.AwakeUp();
+
+                            prevBoat.Mutate(mutationFactor, mutationChance);
+                            prevBoat.AwakeUp();
+
+                            prevBoat = null;
+
+                        }
+
+                    }
+                }
+                else
+                {
+                    boat.Mutate(mutationFactor, mutationChance);
+                    boat.AwakeUp();
+                }
             }
         }
     }
@@ -157,6 +202,12 @@ public class GenerationManager : MonoBehaviour
     public void MakeNewGeneration()
     {
         GenerateBoxes();
+
+        if (_activeBoats.Count == 0)
+        {
+            GenerateBoats();
+            return;
+        }
 
         //Fetch parents
         _activeBoats.RemoveAll(item => item == null);
@@ -187,11 +238,6 @@ public class GenerationManager : MonoBehaviour
         }
 
 
-        if (_activeBoats.Count == 0)
-        {
-            GenerateBoats();
-            return;
-        }
 
         _boatParents = new BoatLogic[boatParentSize];
         if (!stochastic)
@@ -207,11 +253,12 @@ public class GenerationManager : MonoBehaviour
 
     /// <summary>
     ///Stochastic search implemetation in O(_activeBoats ^ boatParentsize) -could be improved-, for details see wiki page in github repository
+    ///Assumes activeboats is sorted
     /// </summary>
     private void stochasticSearch()
     {
         List<float> probabilityList = new List<float>();
-        float total = 0;
+        float total;
 
         //fist truncate the points to reduce probability of picking worst players
         for (int i = 0; i < _activeBoats.Count; i++)
@@ -220,18 +267,20 @@ public class GenerationManager : MonoBehaviour
             probabilityList.Add(truncatedPoints);
         }
 
-        for (int boatParentIndex = 0; boatParentIndex < _boatParents.Length; boatParentIndex++, total = 0)
+        for (int boatParentIndex = 0; boatParentIndex < _boatParents.Length; boatParentIndex++)
         {
+            total = 0;
             //add elements to get total
             for (int i = 0; i < probabilityList.Count; i++)
             {
                 total += probabilityList[i];
             }
 
-            if (total == 0)
+            if (total == 0f)
             {
                 _activeBoats.RemoveAt(0);
                 probabilityList.RemoveAt(0);
+                _boatParents[boatParentIndex] = _activeBoats[0];
                 continue;
             }
 
@@ -242,17 +291,16 @@ public class GenerationManager : MonoBehaviour
             float r = Random.value;
 
             //get a random item from the list given the probability
-            for (int i = probabilityList.Count - 1; i >= 0; i--)
+            for (int i = probabilityList.Count - 1; i > 0; i--)
             {
                 r -= probabilityList[i];
-                if (r <= 0)
+                if (r <= 0f)
                 {
                     _boatParents[boatParentIndex] = _activeBoats[i];
                     _activeBoats.RemoveAt(i);
                     probabilityList.RemoveAt(i);
                     break;
                 }
-
             }
         }
     }
@@ -353,7 +401,7 @@ public class GenerationManager : MonoBehaviour
         }
         catch
         {
-            Debug.LogWarning("Error when clearing the scores file, be aware it may still contain other data");
+            Debug.LogWarning("Error when clearing the scores file");
         }
     }
 
